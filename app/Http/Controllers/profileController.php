@@ -2,7 +2,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use App\Models\Profile;
+use App\Http\Requests\ProfileRequest;
 
 class profileController extends Controller
 {
@@ -19,24 +21,19 @@ class profileController extends Controller
     {
         return view('create');
     }
-    public function store (Request $request) 
+    public function store (ProfileRequest $request) 
     {
-        $name = $request->name;
-        $email = $request->email;
-        $password = $request->password;
-        $bio = $request->bio;
-
-        //validation
-            $request->validate([
-                'name' => 'required|min:3',
-                'email' => 'required|email|unique:profiles',
-                'password' => 'required|min:8',
-                'bio' => 'required|min:10',
-            ]);
-
         //insertion
-        Profile::create($request->post());
+        $formFields = $request->validated();
+        $formFields['password'] = Hash::make($request->password);
+        Profile::create($formFields);
         return redirect()->route('profiles.index')->with('success','the profil has been created successfully.');
+    }
+
+    public function destroy(Profile $profile)
+    {
+        $profile->delete();
+        return redirect()->route('profiles.index')->with('success','the profil was deleted successfully.');
     }
 
 }
